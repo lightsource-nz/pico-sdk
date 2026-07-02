@@ -7,4 +7,8 @@ set(PICO_COMMON_LANG_FLAGS_LIST
         " -mcpu=hazard3-rp2350"
         " -march=rv32ima_zicsr_zifencei_zba_zbb_zbs_zbkb_zca_zcb_zcmp -mabi=ilp32"
         " -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb -mabi=ilp32")
+set(PICO_COMMON_LANG_FLAGS_TEST_FILES
+        "${CMAKE_CURRENT_LIST_DIR}/util/riscv_zcmp_test.c"
+        "${CMAKE_CURRENT_LIST_DIR}/util/riscv_zcmp_test.c"
+        "${CMAKE_CURRENT_LIST_DIR}/util/empty.c")
 include(${CMAKE_CURRENT_LIST_DIR}/util/pico_riscv_gcc_common.cmake)
