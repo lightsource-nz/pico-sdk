@@ -5,17 +5,28 @@
  */
 
 #include "hardware/timer.h"
-#if defined(__unix__) || defined(__APPLE__)
+#if defined(__unix__) || defined(__APPLE__) || defined(__MINGW32__)
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
 
 #endif
+#if defined(__MINGW32__)
+#include <windows.h>
+#endif
 
 // in our case not a busy wait
 PICO_WEAK_FUNCTION_DEF(busy_wait_us_32)
 void PICO_WEAK_FUNCTION_IMPL_NAME(busy_wait_us_32)(uint32_t delay_us) {
-#if defined(__unix__) || defined(__APPLE__)
+#if defined(__MINGW32__)
+    // this toolchain's usleep() just does Sleep(us / 1000) -- integer division truncates,
+    // so any delay_us under 1000 (a common case: callers like sleep_us() routinely request
+    // just-under-1ms delays after subtracting a small timing overhead adjustment) silently
+    // becomes Sleep(0), which only yields the current time slice rather than actually
+    // blocking. call Sleep() directly here instead, rounding up so a nonzero delay_us always
+    // blocks for at least that long
+    Sleep((delay_us + 999) / 1000);
+#elif defined(__unix__) || defined(__APPLE__)
     usleep(delay_us);
 #else
     assert(false);
@@ -31,7 +42,7 @@ void PICO_WEAK_FUNCTION_IMPL_NAME(busy_wait_us)(uint64_t delay_us) {
 
 PICO_WEAK_FUNCTION_DEF(busy_wait_ms)
 void PICO_WEAK_FUNCTION_IMPL_NAME(busy_wait_ms)(uint32_t delay_ms) {
-#if defined(__unix__) || defined(__APPLE__)
+#if defined(__unix__) || defined(__APPLE__) || defined(__MINGW32__)
     usleep(delay_ms * 1000);
 #else
     assert(false);
@@ -41,7 +52,7 @@ void PICO_WEAK_FUNCTION_IMPL_NAME(busy_wait_ms)(uint32_t delay_ms) {
 // this may or may not wrap
 PICO_WEAK_FUNCTION_DEF(time_us_64)
 uint64_t PICO_WEAK_FUNCTION_IMPL_NAME(time_us_64)() {
-#if defined(__unix__) || defined(__APPLE__)
+#if defined(__unix__) || defined(__APPLE__) || defined(__MINGW32__)
 //    struct timeval tv;
 //    gettimeofday(&tv, NULL);
 //    return tv.tv_sec * (uint64_t) 1000000 + tv.tv_usec;
