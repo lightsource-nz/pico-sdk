@@ -74,8 +74,19 @@ extern void tight_loop_contents();
 #define __aligned(x) __attribute__((aligned(x)))
 #endif
 
+#if defined(__MINGW32__)
+// same-object weak-symbol self-resolution is broken in MinGW/PE-COFF: a #pragma weak (or
+// __attribute__((weak))) definition ends up as a mangled ".weak.x." symbol with "x" itself
+// left undefined, so any other translation unit referencing "x" fails to link. defining these
+// as ordinary strong symbols works reliably here; the only thing lost is the ability for a
+// consumer to override them with their own weak-linked replacement, which this project doesn't
+// use
+#define PICO_WEAK_FUNCTION_DEF(x)
+#define PICO_WEAK_FUNCTION_IMPL_NAME(x) x
+#else
 #define PICO_WEAK_FUNCTION_DEF(x) _Pragma(__STRING(weak x))
 #define PICO_WEAK_FUNCTION_IMPL_NAME(x) x
+#endif
 
 #ifndef __weak
 #define __weak __attribute__((weak))
