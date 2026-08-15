@@ -1,6 +1,20 @@
 [submodule "tinyusb"]
 	path = lib/tinyusb
-	url = https://github.com/hathach/tinyusb.git
+	# lightsource-nz fork rather than hathach/tinyusb upstream. The commit this SDK pins
+	# carries three RP2040 host-driver fixes that are not upstream, and a submodule can only
+	# be fetched from a repository that actually contains the commit it names -- pointing at
+	# upstream while pinning a fork commit makes `git submodule update` fail with
+	# "reference is not a tree" on every clone but the one that authored it.
+	#
+	# The three: a spinlock leak in hcd_deinit() that exhausted RP2040's 32 hardware
+	# spinlocks over repeated host reinit cycles; a stale USB_BUF_CTRL_AVAIL bit on EPX that
+	# panicked when a class driver re-armed from its own completion callback; and a clamp for
+	# a USB-MIDI device advertising an illegal 4-byte full-speed bulk max packet size.
+	#
+	# All three are candidates for upstreaming -- the spinlock leak especially, being an
+	# unambiguous resource leak with a two-line fix. If they land upstream this can go back to
+	# tracking hathach/tinyusb directly.
+	url = https://github.com/lightsource-nz/tinyusb.git
 [submodule "lib/cyw43-driver"]
 	path = lib/cyw43-driver
 	url = https://github.com/georgerobotics/cyw43-driver.git
